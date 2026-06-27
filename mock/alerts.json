@@ -1,0 +1,38 @@
+[
+  {
+    "alert_id": "ALT-001",
+    "raw_alert": {
+      "type": "exploit_attempt",
+      "description": "Inbound exploit attempt targeting Apache Log4j RCE vulnerability on port 8080",
+      "source_ip": "193.106.191.5",
+      "destination_ip": "10.0.1.45",
+      "cve_id": "CVE-2021-44228",
+      "timestamp": "2024-01-15T03:22:11Z"
+    },
+    "comment": "Should route → CRITICAL (Log4Shell + high abuse IP)"
+  },
+  {
+    "alert_id": "ALT-002",
+    "raw_alert": {
+      "type": "brute_force",
+      "description": "SSH brute force attack detected — 847 failed login attempts in 60 seconds",
+      "source_ip": "45.33.32.156",
+      "destination_ip": "10.0.1.10",
+      "cve_id": "unknown",
+      "timestamp": "2024-01-15T07:45:00Z"
+    },
+    "comment": "Should route → MEDIUM (suspicious but no CVE, needs human review)"
+  },
+  {
+    "alert_id": "ALT-003",
+    "raw_alert": {
+      "type": "port_scan",
+      "description": "Port scan detected from external IP — 22 ports probed over 30 minutes",
+      "source_ip": "8.8.8.8",
+      "destination_ip": "10.0.1.0/24",
+      "cve_id": "unknown",
+      "timestamp": "2024-01-15T11:00:00Z"
+    },
+    "comment": "Should route → LOW or FALSE_POSITIVE (Google DNS IP, likely scanner noise)"
+  }
+]
