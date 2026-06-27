@@ -11,6 +11,7 @@ app = FastAPI(
     title="SOC Alert Triage Agent",
     description="LangGraph-powered security alert triage with human-in-the-loop",
     version="1.0.0",
+    debug=True,
 )
 
 app.add_middleware(
