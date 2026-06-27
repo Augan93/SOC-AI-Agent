@@ -1,7 +1,8 @@
 import os
 import uuid
 import json
-from langchain_aws import ChatBedrock
+# from langchain_aws import ChatBedrock
+from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from .state import AlertState
@@ -13,10 +14,18 @@ from .tools import lookup_ip_reputation, lookup_cve, parse_cvss_from_text
 # Claude Haiku — fast and cheap for classification and report generation
 # ---------------------------------------------------------------------------
 
-def _get_llm() -> ChatBedrock:
-    return ChatBedrock(
-        model_id="anthropic.claude-haiku-20240307-v1:0",
-        model_kwargs={"temperature": 0, "max_tokens": 2048},
+# def _get_llm() -> ChatBedrock:
+#     return ChatBedrock(
+#         model_id="anthropic.claude-haiku-20240307-v1:0",
+#         model_kwargs={"temperature": 0, "max_tokens": 2048},
+#     )
+
+
+def _get_llm():
+    return ChatAnthropic(
+        model="claude-haiku-4-5-20251001",   # current Haiku 4.5
+        temperature=0,
+        max_tokens=2048,
     )
 
 
