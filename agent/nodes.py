@@ -231,6 +231,7 @@ CVE ID: {state.get('cve_id', 'N/A')}
                 raw = raw[4:]
 
         parsed = json.loads(raw)
+        print(f"Classification result from LLM: {parsed}")
         severity = parsed.get("severity", "low")
         reason = parsed.get("classification_reason", "No reason provided")
         action = parsed.get("recommended_action", "Monitor and review")
