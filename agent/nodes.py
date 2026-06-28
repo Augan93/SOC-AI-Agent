@@ -1,4 +1,3 @@
-# import os
 from dotenv import load_dotenv
 import uuid
 import json
@@ -9,6 +8,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from .state import AlertState
 from .tools import lookup_ip_reputation, lookup_cve, parse_cvss_from_text
 
+load_dotenv()
 
 # ---------------------------------------------------------------------------
 # Shared LLM instance
@@ -20,8 +20,6 @@ from .tools import lookup_ip_reputation, lookup_cve, parse_cvss_from_text
 #         model_id="anthropic.claude-haiku-20240307-v1:0",
 #         model_kwargs={"temperature": 0, "max_tokens": 2048},
 #     )
-
-load_dotenv()
 
 
 def _get_llm():
@@ -168,22 +166,24 @@ def cve_lookup_node(state: AlertState) -> dict:
 # then our Python router (in graph.py) makes the routing decision.
 # ---------------------------------------------------------------------------
 
-CLASSIFY_SYSTEM_PROMPT = """You are a senior SOC analyst AI. Your job is to classify security alerts.
-
-Given alert data, you MUST respond with ONLY valid JSON in this exact format:
-{
-  "severity": "critical|medium|low|false_positive",
-  "classification_reason": "2-3 sentence explanation of why you chose this severity",
-  "recommended_action": "specific action the analyst should take"
-}
-
-Severity guidelines:
-- critical: active exploitation, confirmed breach, ransomware, data exfiltration, CVSS >= 9.0, IP abuse score >= 80
-- medium: suspicious activity, probable attack, CVSS 7.0-8.9, IP abuse score 40-79, needs human review
-- low: low confidence indicators, CVSS < 7.0, IP abuse score < 40, likely automated scan
-- false_positive: known safe IP, internal traffic, test/monitoring traffic
-
-Respond ONLY with the JSON object. No markdown, no explanation outside the JSON."""
+CLASSIFY_SYSTEM_PROMPT = """
+    You are a senior SOC analyst AI. Your job is to classify security alerts.
+    
+    Given alert data, you MUST respond with ONLY valid JSON in this exact format:
+    {
+      "severity": "critical|medium|low|false_positive",
+      "classification_reason": "2-3 sentence explanation of why you chose this severity",
+      "recommended_action": "specific action the analyst should take"
+    }
+    
+    Severity guidelines:
+    - critical: active exploitation, confirmed breach, ransomware, data exfiltration, CVSS >= 9.0, IP abuse score >= 80
+    - medium: suspicious activity, probable attack, CVSS 7.0-8.9, IP abuse score 40-79, needs human review
+    - low: low confidence indicators, CVSS < 7.0, IP abuse score < 40, likely automated scan
+    - false_positive: known safe IP, internal traffic, test/monitoring traffic
+    
+    Respond ONLY with the JSON object. No markdown, no explanation outside the JSON.
+"""
 
 
 def classify_node(state: AlertState) -> dict:
@@ -193,22 +193,22 @@ def classify_node(state: AlertState) -> dict:
 
     # Build a rich context string from all enriched state fields
     context = f"""
-Alert Type: {state.get('alert_type', 'unknown')}
-Description: {state.get('description', 'N/A')}
-Timestamp: {state.get('timestamp', 'N/A')}
+        Alert Type: {state.get('alert_type', 'unknown')}
+        Description: {state.get('description', 'N/A')}
+        Timestamp: {state.get('timestamp', 'N/A')}
 
-Source IP: {state.get('source_ip', 'N/A')}
-  - Abuse Score: {state.get('ip_reputation_score', 'N/A')}/100
-  - Country: {state.get('ip_country', 'N/A')}
-  - ISP: {state.get('ip_isp', 'N/A')}
-  - Is Tor Exit Node: {state.get('ip_is_tor', False)}
-  - Total Historical Reports: {state.get('ip_total_reports', 0)}
+        Source IP: {state.get('source_ip', 'N/A')}
+          - Abuse Score: {state.get('ip_reputation_score', 'N/A')}/100
+          - Country: {state.get('ip_country', 'N/A')}
+          - ISP: {state.get('ip_isp', 'N/A')}
+          - Is Tor Exit Node: {state.get('ip_is_tor', False)}
+          - Total Historical Reports: {state.get('ip_total_reports', 0)}
 
-CVE ID: {state.get('cve_id', 'N/A')}
-  - CVSS Score: {state.get('cve_cvss_score', 'N/A')}
-  - CVSS Severity: {state.get('cve_severity_label', 'N/A')}
-  - Description: {state.get('cve_description', 'N/A')}
-""".strip()
+        CVE ID: {state.get('cve_id', 'N/A')}
+          - CVSS Score: {state.get('cve_cvss_score', 'N/A')}
+          - CVSS Severity: {state.get('cve_severity_label', 'N/A')}
+          - Description: {state.get('cve_description', 'N/A')}
+    """.strip()
 
     messages = [
         SystemMessage(content=CLASSIFY_SYSTEM_PROMPT),
@@ -323,31 +323,33 @@ def auto_close_node(state: AlertState) -> dict:
 # This is the artifact that gets stored, sent to SIEM, or shown in the UI.
 # ---------------------------------------------------------------------------
 
-REPORT_SYSTEM_PROMPT = """You are a SOC analyst writing an incident report.
-Generate a clear, structured markdown report based on the alert data provided.
-
-Use this exact structure:
-# Incident Report — {alert_id}
-
-## Summary
-One paragraph overview.
-
-## Alert Details
-Key fields in a markdown table.
-
-## Threat Intelligence
-IP reputation findings and CVE details.
-
-## Classification
-Severity, reasoning, and recommended action.
-
-## Disposition
-What happened: escalated / sent to human review / auto-closed.
-
-## Recommended Next Steps
-3-5 bullet points.
-
-Keep the report factual, concise, and under 400 words."""
+REPORT_SYSTEM_PROMPT = """
+    You are a SOC analyst writing an incident report.
+    Generate a clear, structured markdown report based on the alert data provided.
+    
+    Use this exact structure:
+    # Incident Report — {alert_id}
+    
+    ## Summary
+    One paragraph overview.
+    
+    ## Alert Details
+    Key fields in a markdown table.
+    
+    ## Threat Intelligence
+    IP reputation findings and CVE details.
+    
+    ## Classification
+    Severity, reasoning, and recommended action.
+    
+    ## Disposition
+    What happened: escalated / sent to human review / auto-closed.
+    
+    ## Recommended Next Steps
+    3-5 bullet points.
+    
+    Keep the report factual, concise, and under 400 words.
+    """
 
 
 def report_node(state: AlertState) -> dict:
@@ -366,24 +368,24 @@ def report_node(state: AlertState) -> dict:
         disposition = "Unknown disposition"
 
     context = f"""
-Alert ID: {state.get('alert_id')}
-Alert Type: {state.get('alert_type')}
-Description: {state.get('description')}
-Timestamp: {state.get('timestamp')}
+        Alert ID: {state.get('alert_id')}
+        Alert Type: {state.get('alert_type')}
+        Description: {state.get('description')}
+        Timestamp: {state.get('timestamp')}
 
-Source IP: {state.get('source_ip')} (abuse score: {state.get('ip_reputation_score')}/100,
-  country: {state.get('ip_country')}, ISP: {state.get('ip_isp')},
-  Tor: {state.get('ip_is_tor')}, reports: {state.get('ip_total_reports')})
+        Source IP: {state.get('source_ip')} (abuse score: {state.get('ip_reputation_score')}/100,
+          country: {state.get('ip_country')}, ISP: {state.get('ip_isp')},
+          Tor: {state.get('ip_is_tor')}, reports: {state.get('ip_total_reports')})
 
-CVE: {state.get('cve_id')} — CVSS {state.get('cve_cvss_score')} ({state.get('cve_severity_label')})
-CVE Description: {state.get('cve_description', 'N/A')}
+        CVE: {state.get('cve_id')} — CVSS {state.get('cve_cvss_score')} ({state.get('cve_severity_label')})
+        CVE Description: {state.get('cve_description', 'N/A')}
 
-Classification: {state.get('severity')}
-Reason: {state.get('classification_reason')}
-Recommended Action: {state.get('recommended_action')}
+        Classification: {state.get('severity')}
+        Reason: {state.get('classification_reason')}
+        Recommended Action: {state.get('recommended_action')}
 
-Disposition: {disposition}
-""".strip()
+        Disposition: {disposition}
+    """.strip()
 
     messages = [
         SystemMessage(content=REPORT_SYSTEM_PROMPT),
