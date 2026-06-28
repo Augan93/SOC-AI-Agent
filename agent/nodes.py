@@ -1,4 +1,5 @@
-import os
+# import os
+from dotenv import load_dotenv
 import uuid
 import json
 # from langchain_aws import ChatBedrock
@@ -19,6 +20,8 @@ from .tools import lookup_ip_reputation, lookup_cve, parse_cvss_from_text
 #         model_id="anthropic.claude-haiku-20240307-v1:0",
 #         model_kwargs={"temperature": 0, "max_tokens": 2048},
 #     )
+
+load_dotenv()
 
 
 def _get_llm():
@@ -212,8 +215,12 @@ CVE ID: {state.get('cve_id', 'N/A')}
         HumanMessage(content=f"Classify this alert:\n\n{context}"),
     ]
 
-    response = llm.invoke(messages)
-    raw = response.content.strip()
+    try:
+        response = llm.invoke(messages)
+        raw = response.content.strip()
+    except Exception as ex:
+        print(f"Failed to invoke LLM: {ex}")
+        raise
 
     # Parse the JSON response
     try:
