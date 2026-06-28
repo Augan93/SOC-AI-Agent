@@ -2,3 +2,4 @@
 .python-version
 .env
 .DS_Store
+temp.py
