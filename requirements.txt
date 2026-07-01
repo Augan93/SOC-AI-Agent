@@ -14,3 +14,4 @@ duckduckgo-search>=6.0.0
 python-dotenv>=1.0.0
 langchain-anthropic
 streamlit
+langgraph-checkpoint-sqlite>=2.0.0

@@ -4,3 +4,4 @@
 .DS_Store
 temp.py
 __pycache__
+alerts.db

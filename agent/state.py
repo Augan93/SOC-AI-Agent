@@ -20,7 +20,7 @@ class AlertState(TypedDict):
     alert_type: str          # e.g. "port_scan", "brute_force", "malware"
     source_ip: Optional[str]
     destination_ip: Optional[str]
-    cve_id: Optional[str]    # e.g. "CVE-2024-1234" if present in alert
+    cve_id: Optional[str]    # Common Vulnerabilities and Exposures. e.g. "CVE-2024-1234" if present in alert
     timestamp: Optional[str]
     description: str         # human-readable alert description
 

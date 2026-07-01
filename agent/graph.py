@@ -1,5 +1,7 @@
+import os
+
 from langgraph.graph import StateGraph, START, END
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 from .state import AlertState
 from .nodes import (
@@ -107,7 +109,9 @@ def build_graph() -> StateGraph:
 # Swap MemorySaver for SqliteSaver or RedisSaver for production.
 
 
-checkpointer = MemorySaver()
+_db_path = os.getenv("SOC_DB_PATH", "alerts.db")
+_sqlite_cm = SqliteSaver.from_conn_string(_db_path)
+checkpointer = _sqlite_cm.__enter__()
 
 compiled_graph = build_graph().compile(
     checkpointer=checkpointer,
