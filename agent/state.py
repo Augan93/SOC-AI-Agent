@@ -13,9 +13,7 @@ class AlertState(TypedDict):
     It does not touch ip_reputation or any other key it didn't set.
     """
 
-    # ------------------------------------------------------------------
     # Set by ingest_node
-    # ------------------------------------------------------------------
     alert_id: str
     raw_alert: dict          # original JSON from SIEM / mock file
 
@@ -26,38 +24,28 @@ class AlertState(TypedDict):
     timestamp: Optional[str]
     description: str         # human-readable alert description
 
-    # ------------------------------------------------------------------
     # Set by ip_lookup_node
-    # ------------------------------------------------------------------
     ip_reputation_score: Optional[int]    # AbuseIPDB: 0-100 (100 = most abusive)
     ip_country: Optional[str]
     ip_isp: Optional[str]
     ip_is_tor: Optional[bool]
     ip_total_reports: Optional[int]
 
-    # ------------------------------------------------------------------
     # Set by cve_lookup_node
-    # ------------------------------------------------------------------
     cve_description: Optional[str]
     cve_cvss_score: Optional[float]      # 0.0–10.0
     cve_severity_label: Optional[str]    # "CRITICAL" / "HIGH" / "MEDIUM" / "LOW"
 
-    # ------------------------------------------------------------------
     # Set by classify_node (LLM)
-    # ------------------------------------------------------------------
     severity: Optional[Literal["critical", "medium", "low", "false_positive"]]
     classification_reason: Optional[str]
     recommended_action: Optional[str]
 
-    # ------------------------------------------------------------------
     # Set by routing / action nodes
-    # ------------------------------------------------------------------
     escalated: bool                      # True if escalate_node ran
     ticket_id: Optional[str]            # created by escalate_node
     human_decision: Optional[str]        # analyst input after human_review pause
     auto_closed: bool                    # True if auto_close_node ran
 
-    # ------------------------------------------------------------------
     # Set by report_node (final output)
-    # ------------------------------------------------------------------
     report: Optional[str]               # full markdown incident report

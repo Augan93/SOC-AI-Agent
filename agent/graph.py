@@ -15,7 +15,6 @@ from .nodes import (
 )
 
 
-# ---------------------------------------------------------------------------
 # Conditional edge function — the "router"
 #
 # This is a plain Python function, NOT an LLM call.
@@ -26,7 +25,7 @@ from .nodes import (
 #   - The LLM decides WHAT the severity is (in classify_node)
 #   - Python decides WHERE to go next (here)
 # Never let an LLM make routing decisions — it's slow, expensive, and unreliable.
-# ---------------------------------------------------------------------------
+
 
 def route_by_severity(state: AlertState) -> str:
     severity = state.get("severity", "low")
@@ -40,11 +39,8 @@ def route_by_severity(state: AlertState) -> str:
         return "auto_close_node"
 
 
-# ---------------------------------------------------------------------------
-# Build the graph
-# ---------------------------------------------------------------------------
-
 def build_graph() -> StateGraph:
+    """Build the graph"""
     # 1. Create the graph, telling it what the state shape looks like
     graph = StateGraph(AlertState)
 
@@ -98,7 +94,6 @@ def build_graph() -> StateGraph:
     return graph
 
 
-# ---------------------------------------------------------------------------
 # Compile the graph with a checkpointer
 #
 # compile() validates the graph structure — missing nodes, dangling edges,
@@ -110,7 +105,7 @@ def build_graph() -> StateGraph:
 # with a new .invoke() call on the same thread_id.
 #
 # Swap MemorySaver for SqliteSaver or RedisSaver for production.
-# ---------------------------------------------------------------------------
+
 
 checkpointer = MemorySaver()
 

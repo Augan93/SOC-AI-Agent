@@ -3,13 +3,12 @@ import requests
 from langchain_community.tools import DuckDuckGoSearchRun
 
 
-# ---------------------------------------------------------------------------
 # AbuseIPDB — IP reputation lookup
 #
 # Free tier: 1,000 checks/day. No credit card needed.
 # Sign up at https://www.abuseipdb.com/register
 # Set ABUSEIPDB_API_KEY in your .env
-# ---------------------------------------------------------------------------
+
 
 def lookup_ip_reputation(ip: str) -> dict:
     """
@@ -57,13 +56,12 @@ def lookup_ip_reputation(ip: str) -> dict:
         return {"error": str(e), "abuseConfidenceScore": 0}
 
 
-# ---------------------------------------------------------------------------
 # CVE lookup via DuckDuckGo web search
 #
 # No API key needed. Searches for CVE ID and returns a summary.
 # In production, swap for NVD API (free, rate-limited):
 # https://nvd.nist.gov/developers/vulnerabilities
-# ---------------------------------------------------------------------------
+
 
 _ddg = DuckDuckGoSearchRun()
 

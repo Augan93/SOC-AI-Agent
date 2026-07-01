@@ -16,9 +16,9 @@ import streamlit as st
 
 API_URL = "http://localhost:8000"
 
-# ---------------------------------------------------------------------------
+
 # Page config
-# ---------------------------------------------------------------------------
+
 
 st.set_page_config(
     page_title="SOC Triage Agent",
@@ -27,9 +27,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ---------------------------------------------------------------------------
+
 # Minimal CSS — severity colors + node step styling
-# ---------------------------------------------------------------------------
+
 
 st.markdown("""
 <style>
@@ -84,9 +84,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ---------------------------------------------------------------------------
 # Graph node sequence — used to animate progress
-# ---------------------------------------------------------------------------
 
 GRAPH_NODES = [
     ("ingest_node",       "Ingest & parse alert"),
@@ -143,9 +141,7 @@ MOCK_ALERTS = [
 ]
 
 
-# ---------------------------------------------------------------------------
 # Session state defaults
-# ---------------------------------------------------------------------------
 
 defaults = {
     "triage_result": None,        # last API response dict
@@ -169,9 +165,7 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 
-# ---------------------------------------------------------------------------
 # Helpers
-# ---------------------------------------------------------------------------
 
 def severity_badge(severity: str) -> str:
     cls = {
@@ -223,9 +217,7 @@ def post_resume(thread_id: str, decision: str) -> dict | None:
         return None
 
 
-# ---------------------------------------------------------------------------
 # Real-time graph progress renderer
-# ---------------------------------------------------------------------------
 
 def render_graph_progress(severity: str | None = None):
     """Render the node pipeline with live dot states."""
@@ -258,10 +250,8 @@ def render_graph_progress(severity: str | None = None):
     st.markdown(rows_html, unsafe_allow_html=True)
 
 
-# ---------------------------------------------------------------------------
 # Simulate node-by-node progress while API call is in flight
 # The API is synchronous — we animate steps with sleeps matching real timings.
-# ---------------------------------------------------------------------------
 
 def run_triage_with_animation(raw_alert: dict, alert_id: str):
     reset_node_states()
@@ -349,9 +339,7 @@ def run_triage_with_animation(raw_alert: dict, alert_id: str):
         render_graph_progress(severity)
 
 
-# ---------------------------------------------------------------------------
 # Layout: sidebar + two columns
-# ---------------------------------------------------------------------------
 
 # ── Sidebar ─────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -526,9 +514,7 @@ with col_result:
                 st.markdown(result["report"])
 
 
-# ---------------------------------------------------------------------------
 # Trigger: submit button clicked
-# ---------------------------------------------------------------------------
 
 if submit_btn:
     alert_id = f"ALT-{str(uuid.uuid4())[:8].upper()}"

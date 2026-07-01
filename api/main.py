@@ -22,9 +22,7 @@ app.add_middleware(
 )
 
 
-# ---------------------------------------------------------------------------
 # Schemas
-# ---------------------------------------------------------------------------
 
 class AlertRequest(BaseModel):
     alert_id: Optional[str] = None    # auto-generated if not provided
@@ -51,14 +49,11 @@ class AlertResponse(BaseModel):
     message: str = ""
 
 
-# ---------------------------------------------------------------------------
-# POST /alert  — submit a new alert for triage
-# ---------------------------------------------------------------------------
-
 @app.post("/alert", response_model=AlertResponse)
 async def triage_alert(req: AlertRequest):
     """
     Submit a new security alert for automated triage.
+    POST /alert  — submit a new alert for triage
 
     The graph runs through: ingest → enrich (parallel) → classify → route.
 
@@ -137,14 +132,11 @@ async def triage_alert(req: AlertRequest):
     )
 
 
-# ---------------------------------------------------------------------------
-# POST /alert/{thread_id}/resume  — analyst submits decision for paused alert
-# ---------------------------------------------------------------------------
-
 @app.post("/alert/{thread_id}/resume", response_model=AlertResponse)
 async def resume_alert(thread_id: str, req: ResumeRequest):
     """
     Resume a paused alert after human review.
+    POST /alert/{thread_id}/resume  — analyst submits decision for paused alert
 
     The analyst sends their decision ("escalate" or "close").
     LangGraph resumes the graph from human_review_node and runs to completion.
@@ -195,13 +187,12 @@ async def resume_alert(thread_id: str, req: ResumeRequest):
     )
 
 
-# ---------------------------------------------------------------------------
-# GET /alert/{thread_id}  — get current state of any alert
-# ---------------------------------------------------------------------------
-
 @app.get("/alert/{thread_id}")
 async def get_alert_state(thread_id: str):
-    """Return the current state of an alert by thread_id."""
+    """
+    Return the current state of an alert by thread_id.
+    GET /alert/{thread_id}  — get current state of any alert
+    """
     config = {"configurable": {"thread_id": thread_id}}
     graph_state = compiled_graph.get_state(config)
 

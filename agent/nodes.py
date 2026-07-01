@@ -10,10 +10,10 @@ from .tools import lookup_ip_reputation, lookup_cve, parse_cvss_from_text
 
 load_dotenv()
 
-# ---------------------------------------------------------------------------
+
 # Shared LLM instance
 # Claude Haiku — fast and cheap for classification and report generation
-# ---------------------------------------------------------------------------
+
 
 # def _get_llm() -> ChatBedrock:
 #     return ChatBedrock(
@@ -30,7 +30,6 @@ def _get_llm():
     )
 
 
-# ---------------------------------------------------------------------------
 # NODE 1: ingest_node
 #
 # Pure Python — no LLM, no API call.
@@ -39,7 +38,7 @@ def _get_llm():
 #
 # CONCEPT: nodes return ONLY the keys they change.
 # LangGraph merges this partial dict into the full state automatically.
-# ---------------------------------------------------------------------------
+
 
 def ingest_node(state: AlertState) -> dict:
     print(f"\n[ingest_node] Processing alert: {state.get('alert_id', 'unknown')}")
@@ -77,14 +76,13 @@ def ingest_node(state: AlertState) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
 # NODE 2: enrich_node
 #
 # A "fan-out coordinator" — its only job is to confirm both parallel
 # child nodes (ip_lookup, cve_lookup) should run.
 # In LangGraph, the parallel execution is defined in graph.py via edges,
 # not here. This node can do lightweight pre-processing if needed.
-# ---------------------------------------------------------------------------
+
 
 def enrich_node(state: AlertState) -> dict:
     print(f"[enrich_node] Fanning out to IP + CVE lookups in parallel")
@@ -93,12 +91,10 @@ def enrich_node(state: AlertState) -> dict:
     return {}
 
 
-# ---------------------------------------------------------------------------
 # NODE 3: ip_lookup_node  (runs in parallel with cve_lookup_node)
 #
 # Calls AbuseIPDB to get reputation data for the source IP.
 # This is an IO-bound operation — perfect for parallel execution.
-# ---------------------------------------------------------------------------
 
 def ip_lookup_node(state: AlertState) -> dict:
     ip = state.get("source_ip", "unknown")
@@ -125,11 +121,10 @@ def ip_lookup_node(state: AlertState) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
 # NODE 4: cve_lookup_node  (runs in parallel with ip_lookup_node)
 #
 # Searches for CVE details using DuckDuckGo + parses CVSS score.
-# ---------------------------------------------------------------------------
+
 
 def cve_lookup_node(state: AlertState) -> dict:
     cve_id = state.get("cve_id", "unknown")
@@ -152,7 +147,6 @@ def cve_lookup_node(state: AlertState) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
 # NODE 5: classify_node  (LLM)
 #
 # The ONLY node that calls the LLM for a decision.
@@ -164,7 +158,7 @@ def cve_lookup_node(state: AlertState) -> dict:
 # CONCEPT: We force JSON output with a strict system prompt.
 # We never let the LLM decide routing — we just ask it for the severity label,
 # then our Python router (in graph.py) makes the routing decision.
-# ---------------------------------------------------------------------------
+
 
 CLASSIFY_SYSTEM_PROMPT = """
     You are a senior SOC analyst AI. Your job is to classify security alerts.
@@ -256,12 +250,11 @@ def classify_node(state: AlertState) -> dict:
         }
 
 
-# ---------------------------------------------------------------------------
 # NODE 6a: escalate_node  (critical severity branch)
 #
 # Creates a ticket and logs escalation.
 # In production: POST to Jira/PagerDuty/ServiceNow API.
-# ---------------------------------------------------------------------------
+
 
 def escalate_node(state: AlertState) -> dict:
     ticket_id = f"INC-{str(uuid.uuid4())[:8].upper()}"
@@ -278,7 +271,6 @@ def escalate_node(state: AlertState) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
 # NODE 6b: human_review_node  (medium severity branch)
 #
 # CONCEPT: This node is declared in graph.py under interrupt_before=[].
@@ -291,7 +283,7 @@ def escalate_node(state: AlertState) -> dict:
 # LangGraph resumes from this node, now with human_decision set in state.
 #
 # This function only runs during the RESUME call.
-# ---------------------------------------------------------------------------
+
 
 def human_review_node(state: AlertState) -> dict:
     decision = state.get("human_decision", "escalate")
@@ -304,24 +296,22 @@ def human_review_node(state: AlertState) -> dict:
         return {"auto_closed": True}
 
 
-# ---------------------------------------------------------------------------
 # NODE 6c: auto_close_node  (low / false_positive branch)
 #
 # Marks the alert as auto-closed. No human needed.
-# ---------------------------------------------------------------------------
+
 
 def auto_close_node(state: AlertState) -> dict:
     print(f"[auto_close_node] Low severity — auto-closing alert")
     return {"auto_closed": True}
 
 
-# ---------------------------------------------------------------------------
 # NODE 7: report_node  (LLM — final output)
 #
 # All three branches converge here.
 # Generates a structured markdown incident report from the full state.
 # This is the artifact that gets stored, sent to SIEM, or shown in the UI.
-# ---------------------------------------------------------------------------
+
 
 REPORT_SYSTEM_PROMPT = """
     You are a SOC analyst writing an incident report.
